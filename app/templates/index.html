@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulseFit &bull; CrewAI Workout & Nutrition Tracker</title>
+  <!-- Modern Fonts and Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Markdown Renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>PulseFit</h1>
+          <span class="badge-agent">CrewAI Powered</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="dashboard">
+          <span class="icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-tab="log-workout">
+          <span class="icon">🏋️</span>
+          <span>Log Workout</span>
+        </button>
+        <button class="nav-item" data-tab="ai-workout">
+          <span class="icon">🤖</span>
+          <span>AI Workout Crew</span>
+        </button>
+        <button class="nav-item" data-tab="ai-nutrition">
+          <span class="icon">🥗</span>
+          <span>Meals & Supplements</span>
+        </button>
+        <button class="nav-item" data-tab="analytics">
+          <span class="icon">📈</span>
+          <span>Polars Analytics</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-indicator"></span>
+          <span class="status-text">CrewAI Engine Active</span>
+        </div>
+        <small class="tech-stack">JAX &bull; Polars &bull; FastAPI</small>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Header Bar -->
+      <header class="top-bar">
+        <div>
+          <h2 id="page-title">Dashboard Overview</h2>
+          <p id="page-subtitle" class="subtitle">Track your training volume, review records, and consult multi-agent AI specialists.</p>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-primary" onclick="switchTab('log-workout')">+ New Workout</button>
+        </div>
+      </header>
+
+      <!-- TAB 1: DASHBOARD -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <!-- KPI Summary Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Total Workouts</span>
+            <div class="metric-value" id="metric-sessions">0</div>
+            <span class="metric-sub">Logged sessions</span>
+          </div>
+          <div class="metric-card highlight">
+            <span class="metric-label">Total Volume Lifted</span>
+            <div class="metric-value" id="metric-volume">0 <small>kg</small></div>
+            <span class="metric-sub">Computed with JAX</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Total Repetitions</span>
+            <div class="metric-value" id="metric-reps">0</div>
+            <span class="metric-sub">Across all exercises</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Avg Session Duration</span>
+            <div class="metric-value" id="metric-duration">0 <small>min</small></div>
+            <span class="metric-sub">Time per workout</span>
+          </div>
+        </div>
+
+        <!-- Muscle Distribution and Recent Workouts -->
+        <div class="two-col-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Volume by Muscle Group</h3>
+              <span class="badge">Polars Query</span>
+            </div>
+            <div id="muscle-bars" class="muscle-bars-container">
+              <!-- Dynamically populated -->
+              <p class="placeholder-text">Loading muscle distribution...</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Top Personal Records (1RM)</h3>
+              <span class="badge">JAX Epley Formula</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="prs-table">
+                <thead>
+                  <tr>
+                    <th>Exercise</th>
+                    <th>Muscle</th>
+                    <th>Max Weight</th>
+                    <th>Est. 1RM</th>
+                  </tr>
+                </thead>
+                <tbody id="prs-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Workout Sessions -->
+        <div class="panel full-width">
+          <div class="panel-header">
+            <h3>Recent Workout History</h3>
+            <span class="badge">History</span>
+          </div>
+          <div id="recent-workouts-list" class="workout-cards-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: LOG WORKOUT -->
+      <section id="tab-log-workout" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Log Daily Workout Session</h3>
+            <span class="badge">JAX Math Evaluated</span>
+          </div>
+          <form id="workout-form" onsubmit="handleSaveWorkout(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="workout-title">Session Title</label>
+                <input type="text" id="workout-title" required placeholder="e.g. Chest & Triceps Hypertrophy">
+              </div>
+              <div class="form-group">
+                <label for="workout-date">Date</label>
+                <input type="date" id="workout-date" required>
+              </div>
+              <div class="form-group">
+                <label for="workout-duration">Duration (Minutes)</label>
+                <input type="number" id="workout-duration" required min="1" max="300" value="60">
+              </div>
+            </div>
+
+            <!-- Exercises Container -->
+            <div class="section-divider">
+              <h4>Exercises Performed</h4>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addExerciseBlock()">+ Add Exercise</button>
+            </div>
+
+            <div id="exercises-container">
+              <!-- Dynamic Exercise Blocks -->
+            </div>
+
+            <div class="form-group full-width" style="margin-top: 1.5rem;">
+              <label for="workout-notes">Session Notes / Observations</label>
+              <textarea id="workout-notes" rows="2" placeholder="Felt explosive on bench, slight fatigue on triceps pushdowns..."></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-large">💾 Save Workout Session</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 3: AI WORKOUT CREW -->
+      <section id="tab-ai-workout" class="tab-pane">
+        <div class="two-col-grid reverse-mobile">
+          <!-- Request Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>CrewAI Workout Architect</h3>
+              <span class="badge agent-badge">Exercise Physiologist</span>
+            </div>
+            <p class="panel-desc">Instruct the Exercise Physiologist agent to engineer an optimal periodized routine tailored to your goals and equipment.</p>
+
+            <form id="ai-workout-form" onsubmit="handleGenerateWorkout(event)">
+              <div class="form-group">
+                <label for="ai-workout-goal">Primary Goal</label>
+                <select id="ai-workout-goal">
+                  <option value="Hypertrophy" selected>Hypertrophy (Muscle Growth)</option>
+                  <option value="Maximum Strength">Maximum Strength & Power</option>
+                  <option value="Fat Loss & Conditioning">Fat Loss & Conditioning</option>
+                  <option value="Muscular Endurance">Muscular Endurance & Stamina</option>
+                  <option value="Athletic Performance">Functional Athletic Performance</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Target Muscle Groups</label>
+                <div class="checkbox-chips">
+                  <label class="chip"><input type="checkbox" name="target-muscle" value="Chest" checked> Chest</label>
+                  <label class="chip"><input type="checkbox" name="target-muscle" value="Back"> Back</label>
+                  <label class="chip"><input type="checkbox" name="target-muscle" value="Legs"> Legs</label>
+                  <label class="chip"><input type="checkbox" name="target-muscle" value="Shoulders"> Shoulders</label>
+                  <label class="chip"><input type="checkbox" name="target-muscle" value="Arms" checked> Arms</label>
+                  <label class="chip"><input type="checkbox" name="target-muscle" value="Core"> Core</label>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="ai-fitness-level">Experience Level</label>
+                  <select id="ai-fitness-level">
+                    <option value="Beginner">Beginner (< 1 year)</option>
+                    <option value="Intermediate" selected>Intermediate (1 - 3 years)</option>
+                    <option value="Advanced">Advanced (3+ years)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="ai-equipment">Available Gear</label>
+                  <select id="ai-equipment">
+                    <option value="Full Gym" selected>Full Commercial Gym</option>
+                    <option value="Barbell & Dumbbells">Barbell & Dumbbells</option>
+                    <option value="Dumbbells Only">Dumbbells Only</option>
+                    <option value="Bodyweight & Pullup Bar">Bodyweight & Pullup Bar</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="ai-duration">Duration (mins)</label>
+                  <input type="number" id="ai-duration" value="60" min="20" max="120">
+                </div>
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="ai-include-history" checked>
+                    <span>Incorporate recent workout logs</span>
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" id="btn-generate-workout" class="btn btn-agent btn-large">
+                <span class="btn-text">⚡ Generate Custom Workout with CrewAI</span>
+                <span class="btn-spinner hidden"></span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Result Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Generated Training Regimen</h3>
+              <span class="badge" id="workout-plan-status">Awaiting Request</span>
+            </div>
+            <div id="ai-workout-result" class="markdown-output">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>Configure your goals and click generate. The CrewAI Exercise Physiologist agent will formulate an evidence-based routine for you.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: AI MEALS & SUPPLEMENTS -->
+      <section id="tab-ai-nutrition" class="tab-pane">
+        <div class="two-col-grid reverse-mobile">
+          <!-- Request Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Nutrition & Supplement Agents</h3>
+              <span class="badge agent-badge">Dietitian & Biochemist</span>
+            </div>
+            <p class="panel-desc">Collaborative agents synthesize an optimal meal plan and evidence-graded supplement stack tailored to your bio-parameters.</p>
+
+            <form id="ai-nutrition-form" onsubmit="handleGenerateNutrition(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="nut-goal">Nutritional Goal</label>
+                  <select id="nut-goal">
+                    <option value="Lean Muscle Gain" selected>Lean Muscle Gain (Hypertrophy)</option>
+                    <option value="Fat Loss & Deficit">Fat Loss & Leaning Out</option>
+                    <option value="Body Recomposition">Body Recomposition</option>
+                    <option value="Athletic Fueling">Athletic Fueling & Endurance</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="nut-diet">Dietary Style</label>
+                  <select id="nut-diet">
+                    <option value="Standard Omnivore" selected>Standard Omnivore</option>
+                    <option value="High-Protein Omnivore">High-Protein Focused</option>
+                    <option value="Vegetarian">Vegetarian</option>
+                    <option value="Vegan (Plant-Based)">Vegan (Plant-Based)</option>
+                    <option value="Pescatarian">Pescatarian</option>
+                    <option value="Ketogenic">Ketogenic / Low-Carb</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="nut-bw">Body Weight (kg)</label>
+                  <input type="number" id="nut-bw" value="75" step="0.5" min="30" max="250">
+                </div>
+                <div class="form-group">
+                  <label for="nut-calories">Target Calories (kcal)</label>
+                  <input type="number" id="nut-calories" value="2600" step="50" min="1200" max="6000">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="nut-frequency">Workouts Per Week</label>
+                  <input type="number" id="nut-frequency" value="4" min="1" max="7">
+                </div>
+                <div class="form-group">
+                  <label for="nut-allergies">Allergies / Exclusions</label>
+                  <input type="text" id="nut-allergies" placeholder="e.g. Lactose, Peanuts, None" value="None">
+                </div>
+              </div>
+
+              <button type="submit" id="btn-generate-nutrition" class="btn btn-agent btn-large">
+                <span class="btn-text">🥗 Recommend Meals & Supplements with CrewAI</span>
+                <span class="btn-spinner hidden"></span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Result Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Personalized Nutrition & Supplement Stack</h3>
+              <span class="badge" id="nutrition-plan-status">Awaiting Request</span>
+            </div>
+            <div id="ai-nutrition-result" class="markdown-output">
+              <div class="empty-state">
+                <div class="empty-icon">🥑</div>
+                <p>Provide your dietary specs and click recommend. The Nutritionist and Supplement Specialist agents will craft your exact protocol.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: POLARS ANALYTICS -->
+      <section id="tab-analytics" class="tab-pane">
+        <div class="panel full-width">
+          <div class="panel-header">
+            <div>
+              <h3>Polars Dataframe Tabular Analytics</h3>
+              <p class="subtitle">Real-time aggregations computed via Polars DataFrames and exported to the analytics directory.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="exportAnalyticsData()">⚡ Export to Parquet</button>
+          </div>
+
+          <div class="analytics-export-info">
+            <span class="info-badge">📁 Storage Location:</span>
+            <code>workout_tracker/data/analytics/workout_tabular_data.parquet</code>
+          </div>
+
+          <div class="table-container" style="margin-top: 1.5rem;">
+            <table class="data-table" id="analytics-table">
+              <thead>
+                <tr>
+                  <th>Exercise Name</th>
+                  <th>Target Muscle</th>
+                  <th>Max Weight (kg)</th>
+                  <th>Estimated 1RM (kg)</th>
+                  <th>Cumulative Volume (kg)</th>
+                </tr>
+              </thead>
+              <tbody id="analytics-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
